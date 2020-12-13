@@ -40,14 +40,16 @@ const sub = new Redis(redisurl)
           const WA = new WAConnection()
           WA.browserDescription = ['BROODERHEN', 'Chrome', '87']
 
-          WA.on('connecting', () => {
+          WA.on('connecting', async () => {
             console.log('connecting')
-            valetParking({ id, pub, newskey, step: 'connecting' })
+            await valetParking({ id, pub, newskey, step: 'connecting' })
           })
           WA.on('qr', async qr => {
             console.log('qr')
-            await redis.set(lastQrcodekey(id), qr, NX, EX, expirationSeconds)
-            valetParking({ id, pub, newskey, step: 'qr', qr })
+            await Promise.all([
+              redis.set(lastQrcodekey(id), qr, NX, EX, expirationSeconds),
+              valetParking({ id, pub, newskey, step: 'qr', qr })
+            ])
           })
           WA.on('credentials-updated', async auth => {
             console.log('credentials-updated')
@@ -58,13 +60,17 @@ const sub = new Redis(redisurl)
               encKey: auth.encKey.toString('base64'),
               macKey: auth.macKey.toString('base64')
             })
-            await redis.set(credsKey(id), creds, NX, EX, expirationSeconds)
-            valetParking({ id, pub, newskey, step: 'credentials-updated', creds })
+            await Promise.all([
+              redis.set(credsKey(id), creds, NX, EX, expirationSeconds),
+              valetParking({ id, pub, newskey, step: 'credentials-updated', creds })
+            ])
           })
           WA.on('connection-validated', async ({ jid }) => {
             console.log('connection-validated')
-            await redis.set(jidKey(id), jid, NX, EX, expirationSeconds)
-            valetParking({ id, pub, newskey, step: 'connection-validated', jid })
+            await Promise.all([
+              redis.set(jidKey(id), jid, NX, EX, expirationSeconds),
+              valetParking({ id, pub, newskey, step: 'connection-validated', jid })
+            ])
           })
           WA.on('open', async () => {
             console.log('open')
