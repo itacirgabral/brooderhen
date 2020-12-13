@@ -22,26 +22,17 @@ const redis = new Redis(redisurl)
 const pub = new Redis(redisurl)
 const sub = new Redis(redisurl)
 
-let id
-let intervalId
-let connecting = false
-
 ;(async () => {
-  // get an ephemeral id
-  while (!id) {
-    id = await getnewid({ redis, idKey })
-  }
-  console.log(`id=${id}`)
-
+  const id = await getnewid({ redis, idKey })
   sub.subscribe(newskey, (err, count) => {
     if (!err) {
+      let intervalId
+      let connecting = false
 
-      // wait for the command
       sub.on('message', async (_channel, message) => {
-        console.log(message)
         const { type, ...obj } = JSON.parse(message)
 
-        if (type === 'showqrcode' && id === obj.id && !connecting) {
+        if ( !connecting && type === 'showqrcode' && id === obj.id) {
           console.log('showqrcode')
           clearInterval(intervalId)
           connecting = true
@@ -89,10 +80,10 @@ let connecting = false
             })
 
             console.log('successful')
-
             setTimeout(() => {
               console.log(`Baileys bye { creds: ${creds}, jid: ${jid} }`)
               WA.close()
+              connecting = false
               process.exit(0)
             }, 1000)
           })
