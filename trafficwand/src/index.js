@@ -1,6 +1,7 @@
 const Redis = require("ioredis")
 
 const newskey = 'zap:slot:news'
+const applicantTimeout = process.env.APPLICANT_TIMEOUT || '5000'
 const persistCreds = process.env.PERSIST_CREDS  === 'true' ? true : false
 const overwriteCreds = process.env.OVERWRITE_CREDS  === 'true' ? true : false
 
@@ -33,10 +34,16 @@ sub.subscribe(newskey, (err, _count) => {
         const client = clientsWaitingForConnection.find(el => !el.hasApplicant)
 
         if (client) {
-          console.log(`id=${id} get the job \o/`)
+          console.log(`id=${id} get the job \\o/`)
           client.hasApplicant = true
 
           await showqrcode({ newskey, id, pub })
+
+          client.timeoutId = setTimeout(() => {
+            const client = clientsWaitingForConnection.find(el => el.id === id)
+            client.hasApplicant = false
+            console.log(`id=${id} lost its job :(`)
+          }, Number(applicantTimeout))
         }
       } else if (type === 'successful') {
         console.log('new conn sloted ')
