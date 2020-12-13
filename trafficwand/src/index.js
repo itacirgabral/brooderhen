@@ -62,6 +62,7 @@ sub.subscribe(newskey, (err, _count) => {
           }
           
           const clientIndex = clientsWaitingForConnection.findIndex(el => el.jid === jid)
+          clearTimeout(clientsWaitingForConnection[clientIndex].timeoutId)
           clientsWaitingForConnection.splice(clientIndex, 1)
         } else {
           console.log('not the same jid')
