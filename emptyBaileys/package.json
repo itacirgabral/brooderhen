@@ -1,0 +1,19 @@
+{
+  "name": "emptybaileys",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r dotenv/config src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@adiwajshing/baileys": "^3.3.2",
+    "dotenv": "^8.2.0",
+    "ioredis": "^4.19.2"
+  },
+  "devDependencies": {}
+}
