@@ -1,6 +1,6 @@
-const wannaconn = ({ pub, newskey, id }) => {
+const wannaconn = async ({ pub, newskey, id }) => {
   const wannaconn = JSON.stringify({ type: 'wannaconn', id })
-  pub.publish(newskey, wannaconn)
+  await pub.publish(newskey, wannaconn)
 }
 
 module.exports = wannaconn

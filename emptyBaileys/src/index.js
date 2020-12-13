@@ -24,7 +24,7 @@ const sub = new Redis(redisurl)
 
 ;(async () => {
   const id = await getnewid({ redis, idKey })
-  sub.subscribe(newskey, (err, count) => {
+  sub.subscribe(newskey, async (err, count) => {
     if (!err) {
       let intervalId
       let connecting = false
@@ -99,9 +99,9 @@ const sub = new Redis(redisurl)
       })
 
       // while waiting announces myself
-      wannaconn({ pub, newskey, id })
-      intervalId = setInterval(() => {
-        wannaconn({ pub, newskey, id })
+      await wannaconn({ pub, newskey, id })
+      intervalId = setInterval(async () => {
+        await wannaconn({ pub, newskey, id })
       }, 10000)
     }
   })
