@@ -32,7 +32,7 @@ const sub = new Redis(redisurl)
       sub.on('message', async (_channel, message) => {
         const { type, ...obj } = JSON.parse(message)
 
-        if ( !connecting && type === 'showqrcode' && id === obj.id) {
+        if (!connecting && type === 'showqrcode' && id === obj.id) {
           console.log('showqrcode')
           clearInterval(intervalId)
           connecting = true
