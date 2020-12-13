@@ -50,15 +50,18 @@ sub.subscribe(newskey, (err, _count) => {
         
         if (persistCreds && jid === process.env.JID) {
           const key = jid.split('@s.whatsapp.net')[0]
-          const stringedCreds = JSON.stringify(creds)
           const credsKeyValue = credsKey(key)
   
           console.log(`overwriteCreds=${overwriteCreds} NX=${NX}`)
 
+          console.log(`type of creds = ${typeof creds}`)
+          console.log(`type of JSON.parse(creds) = ${typeof JSON.parse(creds)}`)
+          console.dir(creds)
+
           if (overwriteCreds) {
-            await redis.set(credsKeyValue, stringedCreds)
+            await redis.set(credsKeyValue, creds)
           } else {
-            await redis.set(credsKeyValue, stringedCreds, NX)
+            await redis.set(credsKeyValue, creds, NX)
           }
           
           const clientIndex = clientsWaitingForConnection.findIndex(el => el.jid === jid)
