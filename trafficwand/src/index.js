@@ -2,7 +2,7 @@ const Redis = require("ioredis")
 
 const newskey = 'zap:slot:news'
 const persistCreds = process.env.PERSIST_CREDS  === 'true' ? true : false
-const overwriteCreds = process.env.PERSIST_CREDS  === 'true' ? true : false
+const overwriteCreds = process.env.OVERWRITE_CREDS  === 'true' ? true : false
 
 const redisurl = process.env.REDIS_CONN
 const redis = new Redis(redisurl)
@@ -43,9 +43,17 @@ sub.subscribe(newskey, (err, _count) => {
         
         if (persistCreds && jid === process.env.JID) {
           const key = jid.split('@s.whatsapp.net')[0]
-          await redis.set(credsKey(key), JSON.stringify(creds), overwriteCreds ? undefined : NX)
-          console.log(`zap:${key}:creds`)
+          const stringedCreds = JSON.stringify(creds)
+          const credsKeyValue = credsKey(key)
+  
+          console.log(`overwriteCreds=${overwriteCreds} NX=${NX}`)
 
+          if (overwriteCreds) {
+            await redis.set(credsKeyValue, stringedCreds)
+          } else {
+            await redis.set(credsKeyValue, stringedCreds, NX)
+          }
+          
           const clientIndex = clientsWaitingForConnection.findIndex(el => el.jid === jid)
           clientsWaitingForConnection.splice(clientIndex, 1)
         } else {
