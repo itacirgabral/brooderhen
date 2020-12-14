@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="style.css" >
+    <title>qrsocket</title>
+    <script defer type="module">
+      import { client } from "./clientio.mjs"
+
+      const ws = client()
+      ws.onmessage = console.dir
+      window.ws = ws
+    </script>
+  </head>
+  <body>
+    <h1>QRCODE OF BROODER HEN</h1>
+    <h2></h2>
+  </body>
+</html>
