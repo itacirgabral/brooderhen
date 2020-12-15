@@ -7,9 +7,12 @@
     <title>qrsocket</title>
     <script defer type="module">
       import { client } from "./clientio.mjs"
-
+      const urlParams = new URLSearchParams(window.location.search)
+      const myParam = urlParams.get('jwt')
+  
       const button = document.getElementById('connect')
       const input = document.getElementById('jwt')
+      input.value = myParam
       
       button.onclick = () => {
         const jwt = input.value
