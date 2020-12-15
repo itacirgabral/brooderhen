@@ -19,7 +19,7 @@ wss.on('connection', function connection(ws, req) {
         ws.send(JSON.stringify({ message }))
       }, 1000)
     })
-    ws.send('something')
+    ws.send(JSON.stringify({ message: 'something' }))
   } catch {
     ws.close()
   }

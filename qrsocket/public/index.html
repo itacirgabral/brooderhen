@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="style.css" >
     <title>qrsocket</title>
-    <script defer type="module">
+    <script src="qrcode.js" ></script>    <script defer type="module">
       import { client } from "./clientio.mjs"
       const urlParams = new URLSearchParams(window.location.search)
       const myParam = urlParams.get('jwt')
@@ -20,8 +20,13 @@
 
         const ws = client(`ws://localhost:8081/${jwt}`)
 
-        //{"id":2,"type":"valet-parking","progress":2,"qr":"1@ZnNtkz5vC/IqsEi3oydVRMd0O/j76zay6Xwyc+uZF0Fs4lyObXLcO4HlfFXqx6pbac4BT9evslFLmA==,DVZPQAir/qHRcxv6mO8BtoN7KTPT1aH4z0OLQHHRaFA=,qrkbWwmIM3fuGyvQrJLZxA=="}
-        ws.onmessage = console.dir
+        ws.onmessage = e => {
+          const { id, type, progress, qr } = JSON.parse(e.data)
+          if (type === 'valet-parking' && progress === 2) {
+            console.log(`qrcode=${qr}`)
+            window.qr = new QRCode(document.body, qr)
+          }
+        }
         window.ws = ws
       }
     </script>
@@ -30,6 +35,6 @@
     <h1>QRCODE OF BROODER HEN</h1>
     <input id="jwt" type="text" placeholder="jwt"/>
     <br/>
-    <button id="connect" type="button" >connect</button>
+    <button id="connect" type="button" >connect</button> 
   </body>
 </html>
