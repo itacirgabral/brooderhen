@@ -8,13 +8,25 @@
     <script defer type="module">
       import { client } from "./clientio.mjs"
 
-      const ws = client()
-      ws.onmessage = console.dir
-      window.ws = ws
+      const button = document.getElementById('connect')
+      const input = document.getElementById('jwt')
+      
+      button.onclick = () => {
+        const jwt = input.value
+        console.log(`jwt=${jwt}`)
+
+        const ws = client(`ws://localhost:8081/${jwt}`)
+
+        //{"id":2,"type":"valet-parking","progress":2,"qr":"1@ZnNtkz5vC/IqsEi3oydVRMd0O/j76zay6Xwyc+uZF0Fs4lyObXLcO4HlfFXqx6pbac4BT9evslFLmA==,DVZPQAir/qHRcxv6mO8BtoN7KTPT1aH4z0OLQHHRaFA=,qrkbWwmIM3fuGyvQrJLZxA=="}
+        ws.onmessage = console.dir
+        window.ws = ws
+      }
     </script>
   </head>
   <body>
     <h1>QRCODE OF BROODER HEN</h1>
-    <h2></h2>
+    <input id="jwt" type="text" placeholder="jwt"/>
+    <br/>
+    <button id="connect" type="button" >connect</button>
   </body>
 </html>

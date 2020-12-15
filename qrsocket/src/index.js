@@ -1,18 +1,28 @@
 const WebSocket = require('ws')
 const Redis = require('ioredis')
+const jsonwebtoken = require('jsonwebtoken')
 
 const wss = new WebSocket.Server({ port: 8081 })
 const sub = new Redis(process.env.REDIS_CONN)
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message)
-    setTimeout(() => {
-      ws.send(JSON.stringify({ message }))
-    }, 1000)
-  })
+const jwtSecret = process.env.JWT_SECRET
+const userAdm = process.env.USER_ADM
 
-  ws.send('something')
+wss.on('connection', function connection(ws, req) {
+  const jwt = req.url.slice(1)
+  console.log(jwt)
+  try {
+    jsonwebtoken.verify(jwt, jwtSecret)
+    ws.on('message', function incoming(message) {
+      console.log('received: %s', message)
+      setTimeout(() => {
+        ws.send(JSON.stringify({ message }))
+      }, 1000)
+    })
+    ws.send('something')
+  } catch {
+    ws.close()
+  }
 })
 
 const newskey = 'zap:slot:news'
