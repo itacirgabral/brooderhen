@@ -16,14 +16,14 @@
       
       button.onclick = () => {
         const jwt = input.value
-        console.log(`jwt=${jwt}`)
+        console.dir({ jwt })
 
         const ws = client(`ws://localhost:8081/${jwt}`)
 
         ws.onmessage = e => {
           const { id, type, progress, qr } = JSON.parse(e.data)
           if (type === 'valet-parking' && progress === 2) {
-            console.log(`qrcode=${qr}`)
+            console.dir({ qr })
             window.qr = new QRCode(document.body, qr)
           }
         }
