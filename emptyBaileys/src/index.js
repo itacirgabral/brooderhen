@@ -6,12 +6,12 @@ const valetParking = require('./valetParking')
 const wannaconn = require('./wannaconn')
 const successful = require('./successful')
 
-const idKey = 'zap:panoptics:slotid'
+const slotidKey = 'zap:panoptics:slotid'
 const newskey = 'zap:panoptics:slotnews'
 
-const lastQrcodekey = id => `zap:slot-${id}:lasQrcode`
-const credsKey = id => `zap:slot-${id}:creds`
-const jidKey = id => `zap:slot-${id}:jid`
+const lastQrcodekey = x => `zap:slot-${x}:lasQrcode`
+const credsKey = x => `zap:slot-${x}:creds`
+const jidKey = x => `zap:slot-${x}:jid`
 
 const NX = 'NX'
 const EX = 'EX'
@@ -26,8 +26,8 @@ const pub = new Redis(redisurl)
 const sub = new Redis(redisurl)
 
 ;(async () => {
-  const id = await getnewid({ redis, idKey })
-  console.log(`The slotid is ${id}`)
+  const slotid = await getnewid({ redis, slotidKey })
+  console.log(`The slotid is ${slotid}`)
 
   sub.subscribe(newskey, async (err, count) => {
     if (!err) {
@@ -38,7 +38,7 @@ const sub = new Redis(redisurl)
         console.log(`message=${message}`)
         const { type, ...obj } = JSON.parse(message)
 
-        if (!connecting && type === 'showqrcode' && id === obj.id) {
+        if (!connecting && type === 'showqrcode' && slotid === obj.slotid) {
           console.log('showqrcode')
           clearInterval(intervalId)
           connecting = true
@@ -48,13 +48,13 @@ const sub = new Redis(redisurl)
 
           WA.on('connecting', async () => {
             console.log('connecting')
-            await valetParking({ id, pub, newskey, step: 'connecting' })
+            await valetParking({ slotid, pub, newskey, step: 'connecting' })
           })
           WA.on('qr', async qr => {
             console.log('qr')
             await Promise.all([
-              redis.set(lastQrcodekey(id), qr, NX, EX, expirationSeconds),
-              valetParking({ id, pub, newskey, step: 'qr', qr })
+              redis.set(lastQrcodekey(slotid), qr, NX, EX, expirationSeconds),
+              valetParking({ slotid, pub, newskey, step: 'qr', qr })
             ])
           })
           WA.on('credentials-updated', async auth => {
@@ -67,37 +67,38 @@ const sub = new Redis(redisurl)
               macKey: auth.macKey.toString('base64')
             })
             await Promise.all([
-              redis.set(credsKey(id), creds, NX, EX, expirationSeconds),
-              valetParking({ id, pub, newskey, step: 'credentials-updated', creds })
+              redis.set(credsKey(slotid), creds, NX, EX, expirationSeconds),
+              valetParking({ slotid, pub, newskey, step: 'credentials-updated', creds })
             ])
           })
           WA.on('connection-validated', async ({ jid }) => {
             console.log('connection-validated')
             await Promise.all([
-              redis.set(jidKey(id), jid, NX, EX, expirationSeconds),
-              valetParking({ id, pub, newskey, step: 'connection-validated', jid })
+              redis.set(jidKey(slotid), jid, NX, EX, expirationSeconds),
+              valetParking({ slotid, pub, newskey, step: 'connection-validated', jid })
             ])
           })
           WA.on('open', async () => {
             console.log('open')
-            valetParking({ id, pub, newskey, step: 'open' })
+            valetParking({ slotid, pub, newskey, step: 'open' })
             
             const { creds, jid } = await successful({
-              id,
+              slotid,
               pub,
               redis,
               newskey,
-              credsKey: credsKey(id),
-              jidKey: jidKey(id)
+              credsKey: credsKey(slotid),
+              jidKey: jidKey(slotid)
             })
 
             console.log('successful')
+
             setTimeout(() => {
               console.log(`Baileys bye { creds: ${creds}, jid: ${jid} }`)
               WA.close()
               connecting = false
               process.exit(0)
-            }, 1000)
+            }, 20000)
           })
 
           await WA.connect().catch(console.error)
@@ -105,9 +106,9 @@ const sub = new Redis(redisurl)
       })
 
       // while waiting announces myself
-      await wannaconn({ pub, newskey, id, hardid })
+      await wannaconn({ pub, newskey, slotid, hardid })
       intervalId = setInterval(async () => {
-        await wannaconn({ pub, newskey, id, hardid })
+        await wannaconn({ pub, newskey, slotid, hardid })
       }, 10000)
     }
   })

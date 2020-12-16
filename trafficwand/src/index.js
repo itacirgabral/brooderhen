@@ -10,8 +10,8 @@ const redis = new Redis(redisurl)
 const pub = new Redis(redisurl)
 const sub = new Redis(redisurl)
 
-const credsKey = id => `zap:${id}:creds`
-const hardidKey = hardid => `hardid:${hardid}`
+const credsKey = x => `zap:${x}:creds`
+const hardidKey = x => `hardid:${x}`
 const NX = 'NX'
 
 const showqrcode = require('./showqrcode')
@@ -26,11 +26,11 @@ const clientsWaitingForConnection = [
 sub.subscribe(newskey, (err, _count) => {
   if (!err) {
     sub.on("message", async (_channel, message) => {
-      const { type, id, hardid, creds, jid } = JSON.parse(message)
+      const { type, slotid, hardid, creds, jid } = JSON.parse(message)
 
       console.log(message)
       if (type === 'wannaconn') {
-        console.log(`hardid=${hardid} id=${id} wants a conn!`)
+        console.log(`hardid=${hardid} slotid=${slotid} wants a conn!`)
 
         const shards = await redis.smembers(hardidKey(hardid))
 
@@ -39,15 +39,15 @@ sub.subscribe(newskey, (err, _count) => {
         } else {
           const client = clientsWaitingForConnection.find(el => !el.hasApplicant)
           if (client) {
-            console.log(`id=${id} get the job \\o/`)
+            console.log(`slotid=${slotid} get the job \\o/`)
             client.hasApplicant = true
   
-            await showqrcode({ newskey, id, pub })
+            await showqrcode({ newskey, slotid, pub })
   
             client.timeoutId = setTimeout(() => {
-              const client = clientsWaitingForConnection.find(el => el.id === id)
+              const client = clientsWaitingForConnection.find(el => el.slotid === slotid)
               client.hasApplicant = false
-              console.log(`id=${id} lost its job :(`)
+              console.log(`slotid=${slotid} lost its job :(`)
             }, Number(applicantTimeout))
           }
         }

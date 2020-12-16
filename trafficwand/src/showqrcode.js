@@ -1,8 +1,8 @@
 
-const showqrcode = async ({ newskey, id, pub}) => {
+const showqrcode = async ({ newskey, slotid, pub}) => {
   const json = JSON.stringify({
     type: 'showqrcode',
-    id
+    slotid
   })
 
   const published = await pub.publish(newskey, json)

@@ -1,7 +1,7 @@
-const getnewid = async ({ redis, idKey }) => {
-  const id = await redis.incr(idKey).catch(() => undefined)
+const getnewid = async ({ redis, slotidKey }) => {
+  const slotid = await redis.incr(slotidKey).catch(() => undefined)
 
-  return id
+  return slotid
 }
 
 module.exports = getnewid
