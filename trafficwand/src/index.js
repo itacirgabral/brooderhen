@@ -1,6 +1,6 @@
 const Redis = require("ioredis")
 
-const newskey = 'zap:slot:news'
+const newskey = 'zap:panoptics:slotnews'
 const applicantTimeout = process.env.APPLICANT_TIMEOUT || '5000'
 const persistCreds = process.env.PERSIST_CREDS  === 'true' ? true : false
 const overwriteCreds = process.env.OVERWRITE_CREDS  === 'true' ? true : false
@@ -25,11 +25,11 @@ const clientsWaitingForConnection = [
 sub.subscribe(newskey, (err, _count) => {
   if (!err) {
     sub.on("message", async (_channel, message) => {
-      const { type, id, creds, jid } = JSON.parse(message)
+      const { type, id, hardid, creds, jid } = JSON.parse(message)
 
       console.log(message)
       if (type === 'wannaconn') {
-        console.log(`id=${id} wants a conn!`)
+        console.log(`hardid=${hardid} id=${id} wants a conn!`)
 
         const client = clientsWaitingForConnection.find(el => !el.hasApplicant)
 

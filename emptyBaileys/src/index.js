@@ -6,8 +6,8 @@ const valetParking = require('./valetParking')
 const wannaconn = require('./wannaconn')
 const successful = require('./successful')
 
-const idKey = 'zap:slot:id'
-const newskey = 'zap:slot:news'
+const idKey = 'zap:panoptics:slotid'
+const newskey = 'zap:panoptics:slotnews'
 
 const lastQrcodekey = id => `zap:slot-${id}:lasQrcode`
 const credsKey = id => `zap:slot-${id}:creds`
@@ -16,6 +16,9 @@ const jidKey = id => `zap:slot-${id}:jid`
 const NX = 'NX'
 const EX = 'EX'
 const expirationSeconds = process.env.EXPIRATION_SECONDS
+const hardid = process.env.HARDID
+
+console.log(`I'm ${hardid}`)
 
 const redisurl = process.env.REDIS_CONN
 const redis = new Redis(redisurl)
@@ -24,12 +27,15 @@ const sub = new Redis(redisurl)
 
 ;(async () => {
   const id = await getnewid({ redis, idKey })
+  console.log(`The slotid is ${id}`)
+
   sub.subscribe(newskey, async (err, count) => {
     if (!err) {
       let intervalId
       let connecting = false
 
       sub.on('message', async (_channel, message) => {
+        console.log(`message=${message}`)
         const { type, ...obj } = JSON.parse(message)
 
         if (!connecting && type === 'showqrcode' && id === obj.id) {
@@ -99,9 +105,9 @@ const sub = new Redis(redisurl)
       })
 
       // while waiting announces myself
-      await wannaconn({ pub, newskey, id })
+      await wannaconn({ pub, newskey, id, hardid })
       intervalId = setInterval(async () => {
-        await wannaconn({ pub, newskey, id })
+        await wannaconn({ pub, newskey, id, hardid })
       }, 10000)
     }
   })
