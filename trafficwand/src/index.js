@@ -11,6 +11,7 @@ const pub = new Redis(redisurl)
 const sub = new Redis(redisurl)
 
 const credsKey = id => `zap:${id}:creds`
+const hardidKey = hardid => `hardid:${hardid}`
 const NX = 'NX'
 
 const showqrcode = require('./showqrcode')
@@ -31,19 +32,24 @@ sub.subscribe(newskey, (err, _count) => {
       if (type === 'wannaconn') {
         console.log(`hardid=${hardid} id=${id} wants a conn!`)
 
-        const client = clientsWaitingForConnection.find(el => !el.hasApplicant)
+        const shards = await redis.smembers(hardidKey(hardid))
 
-        if (client) {
-          console.log(`id=${id} get the job \\o/`)
-          client.hasApplicant = true
-
-          await showqrcode({ newskey, id, pub })
-
-          client.timeoutId = setTimeout(() => {
-            const client = clientsWaitingForConnection.find(el => el.id === id)
-            client.hasApplicant = false
-            console.log(`id=${id} lost its job :(`)
-          }, Number(applicantTimeout))
+        if(Array.isArray(shards) && shards.length > 0) {
+          // this VM is managed
+        } else {
+          const client = clientsWaitingForConnection.find(el => !el.hasApplicant)
+          if (client) {
+            console.log(`id=${id} get the job \\o/`)
+            client.hasApplicant = true
+  
+            await showqrcode({ newskey, id, pub })
+  
+            client.timeoutId = setTimeout(() => {
+              const client = clientsWaitingForConnection.find(el => el.id === id)
+              client.hasApplicant = false
+              console.log(`id=${id} lost its job :(`)
+            }, Number(applicantTimeout))
+          }
         }
       } else if (type === 'successful') {
         console.log('new conn sloted ')
@@ -53,9 +59,6 @@ sub.subscribe(newskey, (err, _count) => {
           const credsKeyValue = credsKey(key)
   
           console.log(`overwriteCreds=${overwriteCreds} NX=${NX}`)
-
-          console.log(`type of creds = ${typeof creds}`)
-          console.log(`type of JSON.parse(creds) = ${typeof JSON.parse(creds)}`)
           console.dir(creds)
 
           if (overwriteCreds) {
